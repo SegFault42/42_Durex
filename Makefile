@@ -18,7 +18,8 @@ NAME	= Durex
 CC		= clang
 FLAG	= -Weverything
 SRCS	=	./source/main.c\
-			./source/daemon.c
+			./source/daemon.c\
+			./source/crypt.c
 
 OBJS	= $(SRCS:.c=.o)
 

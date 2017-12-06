@@ -30,8 +30,24 @@ typedef struct			s_connexion
 	int					client_socket[3];
 }						t_connexion;
 
+typedef struct			s_users
+{
+	int					new_socket;
+	int					activity;
+	int					i;
+	int					sd;
+	int					max_sd;
+	int					nb_user;
+	fd_set				readfds;
+	int					key[3];
+	char				pad[4];
+}						t_users;
+
 void	create_daemon(void);
 bool	setup_deamon(t_connexion *connexion);
 bool	run_daemon(t_connexion *connexion);
+
+char	*ft_decrypt(char *str);
+char	*ft_crypt(char *str);
 
 #endif

