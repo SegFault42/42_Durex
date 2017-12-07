@@ -17,6 +17,7 @@
 #include <signal.h>
 #include <sys/file.h>
 #include <stdbool.h>
+#include <wait.h>
 
 #define	MAX_CLIENT	3
 #define	BUFFSIZE	4096
