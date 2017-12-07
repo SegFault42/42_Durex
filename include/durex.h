@@ -45,7 +45,7 @@ typedef struct			s_users
 
 void	create_daemon(void);
 bool	setup_deamon(t_connexion *connexion);
-bool	run_daemon(t_connexion *connexion);
+bool	run_daemon(t_connexion *connexion, char **envp);
 
 char	*ft_decrypt(char *str);
 char	*ft_crypt(char *str);

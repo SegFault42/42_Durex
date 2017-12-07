@@ -1,6 +1,6 @@
 #include "durex.h"
 
-int	main()
+int	main(int argc, char **argv, char **envp)
 {
 	t_connexion	connexion;
 	memset(&connexion, 0, sizeof(connexion));
@@ -8,7 +8,7 @@ int	main()
 	create_daemon();
 	if (setup_deamon(&connexion) == false)
 		return (false);
-	if (run_daemon(&connexion) == false)
+	if (run_daemon(&connexion, envp) == false)
 		return (false);
 	return (0);
 }
