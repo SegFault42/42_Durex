@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 static void	usage()
 {
@@ -16,7 +17,9 @@ int	main(int argc, char **argv)
 		usage();
 
 	int	fd_1 = 0, fd_2 = 0;
-	off_t	locat;
+	off_t		locat;
+	char		*buff;
+	struct stat	st;
 
 	if ( (fd_1 = open(argv[1], O_RDWR | O_APPEND)) == -1)
 	{
@@ -34,5 +37,16 @@ int	main(int argc, char **argv)
 		perror("lseek");
 		return (errno);
 	}
-	dprintf(fd_1, "Salut");
+	fstat(fd_2, &st);
+	buff = (char *)malloc(sizeof(char) * st.st_size);
+	if (buff == NULL)
+	{
+		perror("malloc");
+		return (errno);
+	}
+	read(fd_2, buff, st.st_size);
+	dprintf(fd_1, "%s", buff);
+	dprintf(fd_1, "%d", (unsigned int)locat);
+	close(fd_1);
+	close(fd_2);
 }
