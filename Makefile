@@ -5,33 +5,17 @@
 #                                                     +:+ +:+         +:+      #
 #    By: rabougue <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2015/12/10 19:16:51 by rabougue          #+#    #+#              #
-#    Updated: 2017/11/24 04:44:32 by rabougue         ###   ########.fr        #
+#    Created: 2017/11/05 00:34:51 by rabougue          #+#    #+#              #
+#    Updated: 2017/11/05 01:01:57 by rabougue         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 BLUE = \033[34m
 WHITE = \033[37m
 
-##################################_COMPILATION_#################################
-NAME	= Durex
-CC		= clang
-FLAG	= -Weverything
-SRCS	=	./source/main.c\
-			./source/daemon.c\
-			./source/crypt.c
-
-OBJS	= $(SRCS:.c=.o)
-
-INCLUDE	= -I ./include
-###########################_RELINK_MODIFY_.h####################################
-RELINK = ./include/durex.h
-################################################################################
-
-all: $(NAME)
-
-$(NAME): $(OBJS)
-	@$(CC) $(FLAG) -o $(NAME) $(OBJS)
+all:
+	@make -sf ./Makefile.server
+	@make -sf ./Makefile.client
 	@printf "$(WHITE)┌────────────────────────────────────────────────────────────────────┐\n\
 	│$(BLUE)ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss$(WHITE)│\n\
 	│$(BLUE)ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss$(WHITE)│\n\
@@ -66,20 +50,18 @@ $(NAME): $(OBJS)
 	│$(BLUE)ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss$(WHITE)│\n\
 	└────────────────────────────────────────────────────────────────────┘\n"
 
-%.o : %.c $(RELINK) ./Makefile
-	@printf " ✅                                                              \r"
-	@printf "✅  $(notdir $<)\r"
-	@$(CC) -c $(FLAG) $< -o $@ $(INCLUDE)
+server:
+	@make -sf ./Makefile.server
+
+client:
+	@make -sf Makefile.client
 
 clean:
-	@printf "                                                               \r"
-	@printf "✅  clean done ! (Durex)\n"
-	@rm -f $(OBJS)
+	@make clean -sf ./Makefile.server
+	@make clean -sf ./Makefile.client
 
 fclean:
-	@printf "                                                               \r"
-	@printf "✅  fclean done ! (Durex)\n"
-	@rm -f $(NAME) $(OBJS)
+	@make fclean -sf ./Makefile.server
+	@make fclean -sf ./Makefile.client
 
-re: fclean all
-
+re: clean all

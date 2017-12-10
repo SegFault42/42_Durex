@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <termios.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -21,6 +22,22 @@
 
 #define	MAX_CLIENT	3
 #define	BUFFSIZE	4096
+#define OLD term[0]
+#define NEW term[1]
+
+# define BLACK	"\033[30m"
+# define RED	"\033[31m"
+# define GREEN	"\033[32m"
+# define YELLOW	"\033[33m"
+# define BLUE	"\033[34m"
+# define PURPLE	"\033[35m"
+# define CYAN	"\033[36m"
+# define WHITE	"\033[37m"
+# define ORANGE	"\033[38;5;208m"
+# define PINK	"\033[38;5;13m"
+# define GREY	"\033[38;5;246m"
+
+# define END	"\033[0m"
 
 typedef struct			s_connexion
 {
@@ -50,5 +67,9 @@ bool	run_daemon(t_connexion *connexion, char **envp);
 
 char	*ft_decrypt(char *str);
 char	*ft_crypt(char *str);
+
+
+int		create_client(char *addr, uint16_t port);
+uint16_t	is_port_valid(char **argv);
 
 #endif
