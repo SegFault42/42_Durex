@@ -1,22 +1,22 @@
 #include "durex.h"
 
-char	*ft_crypt(char *str)
-{
-	int	i;
+/*char	*ft_crypt(char *str)*/
+/*{*/
+	/*int	i;*/
 
-	i = 0;
-	if (str == NULL)
-		return (NULL);
-	while (str[i] != '\0')
-		i++;
-	i--;
-	while (i >= 0)
-	{
-		str[i] += 5;
-		i--;
-	}
-	return (str);
-}
+	/*i = 0;*/
+	/*if (str == NULL)*/
+		/*return (NULL);*/
+	/*while (str[i] != '\0')*/
+		/*i++;*/
+	/*i--;*/
+	/*while (i >= 0)*/
+	/*{*/
+		/*str[i] += 5;*/
+		/*i--;*/
+	/*}*/
+	/*return (str);*/
+/*}*/
 
 int	create_client(char *addr, uint16_t port)
 {
@@ -80,15 +80,18 @@ int	main(int argc, char **argv)
 			perror("send");
 			return (errno);
 		}
-		if (!strcmp(buff, "shell"))
+		if (!strcmp(buff, "screenshot"))
 		{
-				memset(&buff, 0, BUFFSIZE);
-			while (recv(sock, buff, 4096, 0) > 0)
+			/*int fd = open("./screen.png", O_RDWR | O_CREAT | O_TRUNC, 0644);*/
+			memset(&buff, 0, BUFFSIZE);
+			while ((ret_recv = recv(sock, buff, BUFFSIZE, 0)) > 0)
 			{
-				write(1, &buff, 4096);
+				if (!strcmp(buff, "finish"))
+					break ;
+				write(1, &buff, ret_recv);
 				memset(&buff, 0, BUFFSIZE);
 			}
-		
+		return(0);
 		}
 		memset(&buff, 0, BUFFSIZE);
 	}

