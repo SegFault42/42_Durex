@@ -1,0 +1,52 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: rabougue <marvin@42.fr>                    +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2015/12/10 19:16:51 by rabougue          #+#    #+#              #
+#    Updated: 2017/11/24 04:44:32 by rabougue         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+BLUE = \033[34m
+WHITE = \033[37m
+
+##################################_COMPILATION_#################################
+NAME	= Daemon
+CC		= clang
+FLAG	= -Weverything
+SRCS	=	./source/source_daemon/main.c\
+			./source/source_daemon/daemon.c\
+			./source/source_daemon/crypt.c
+
+OBJS	= $(SRCS:.c=.o)
+
+INCLUDE	= -I ./include
+###########################_RELINK_MODIFY_.h####################################
+RELINK = ./include/durex.h
+################################################################################
+
+all: $(NAME)
+
+$(NAME): $(OBJS)
+	@$(CC) $(FLAG) -o $(NAME) $(OBJS)
+
+%.o : %.c $(RELINK) ./Makefile
+	@printf " ✅                                                              \r"
+	@printf "✅  $(notdir $<)\r"
+	@$(CC) -c $(FLAG) $< -o $@ $(INCLUDE)
+
+clean:
+	@printf "                                                               \r"
+	@printf "✅  clean done ! (Daemon)\n"
+	@rm -f $(OBJS)
+
+fclean:
+	@printf "                                                               \r"
+	@printf "✅  fclean done ! (Daemon)\n"
+	@rm -f $(NAME) $(OBJS)
+
+re: fclean all
+

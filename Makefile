@@ -14,8 +14,10 @@ BLUE = \033[34m
 WHITE = \033[37m
 
 all:
-	@make -sf ./Makefile.server
-	@make -sf ./Makefile.client
+	@make -sf ./Makefile.daemon
+	@make -sf ./Makefile.durex
+	@make -sf ./Makefile.fusion
+	#@make -sf ./Makefile.client
 	@printf "$(WHITE)┌────────────────────────────────────────────────────────────────────┐\n\
 	│$(BLUE)ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss$(WHITE)│\n\
 	│$(BLUE)ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss$(WHITE)│\n\
@@ -50,18 +52,28 @@ all:
 	│$(BLUE)ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss$(WHITE)│\n\
 	└────────────────────────────────────────────────────────────────────┘\n"
 
-server:
-	@make -sf ./Makefile.server
+daemon:
+	@make -sf ./Makefile.daemon
 
 client:
 	@make -sf Makefile.client
 
+durex:
+	@make -sf Makefile.durex
+
+fusion:
+	@make -sf Makefile.fusion
+
 clean:
-	@make clean -sf ./Makefile.server
-	@make clean -sf ./Makefile.client
+	@make clean -sf ./Makefile.daemon
+	@make clean -sf ./Makefile.durex
+	@make clean -sf ./Makefile.fusion
+	#@make clean -sf ./Makefile.client
 
 fclean:
-	@make fclean -sf ./Makefile.server
-	@make fclean -sf ./Makefile.client
+	@make fclean -sf ./Makefile.daemon
+	@make fclean -sf ./Makefile.durex
+	@make fclean -sf ./Makefile.fusion
+	#@make fclean -sf ./Makefile.client
 
 re: clean all

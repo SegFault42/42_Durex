@@ -14,38 +14,31 @@ BLUE = \033[34m
 WHITE = \033[37m
 
 ##################################_COMPILATION_#################################
-NAME	= Durex
+NAME	= fusion
 CC		= clang
 FLAG	= -Weverything
-SRCS	=	./source/source_server/main.c\
-			./source/source_server/daemon.c\
-			./source/source_server/crypt.c
+SRCS	=	./source/source_fusion/main.c
 
 OBJS	= $(SRCS:.c=.o)
-
-INCLUDE	= -I ./include
-###########################_RELINK_MODIFY_.h####################################
-RELINK = ./include/durex.h
-################################################################################
 
 all: $(NAME)
 
 $(NAME): $(OBJS)
 	@$(CC) $(FLAG) -o $(NAME) $(OBJS)
 
-%.o : %.c $(RELINK) ./Makefile
+%.o : %.c
 	@printf " ✅                                                              \r"
 	@printf "✅  $(notdir $<)\r"
 	@$(CC) -c $(FLAG) $< -o $@ $(INCLUDE)
 
 clean:
 	@printf "                                                               \r"
-	@printf "✅  clean done ! (Durex)\n"
+	@printf "✅  clean done ! (fusion)\n"
 	@rm -f $(OBJS)
 
 fclean:
 	@printf "                                                               \r"
-	@printf "✅  fclean done ! (Durex)\n"
+	@printf "✅  fclean done ! (fusion)\n"
 	@rm -f $(NAME) $(OBJS)
 
 re: fclean all
