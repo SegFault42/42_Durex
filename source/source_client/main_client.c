@@ -1,23 +1,5 @@
 #include "durex.h"
 
-/*char	*ft_crypt(char *str)*/
-/*{*/
-	/*int	i;*/
-
-	/*i = 0;*/
-	/*if (str == NULL)*/
-		/*return (NULL);*/
-	/*while (str[i] != '\0')*/
-		/*i++;*/
-	/*i--;*/
-	/*while (i >= 0)*/
-	/*{*/
-		/*str[i] += 5;*/
-		/*i--;*/
-	/*}*/
-	/*return (str);*/
-/*}*/
-
 int	create_client(char *addr, uint16_t port)
 {
 	int					sock;
@@ -54,6 +36,7 @@ int	main(int argc, char **argv)
 	char		buff[BUFFSIZE] = {0};
 	ssize_t		ret_read = 0, ret_recv = 0;
 	uint16_t	port;
+	size_t		size = 0;
 
 	port = is_port_valid(argv);
 	sock = create_client((char *)"localhost", port);
@@ -80,19 +63,39 @@ int	main(int argc, char **argv)
 			perror("send");
 			return (errno);
 		}
-		if (!strcmp(buff, "screenshot"))
+		if (!strcmp(buff, "screen"))
 		{
-			/*int fd = open("./screen.png", O_RDWR | O_CREAT | O_TRUNC, 0644);*/
-			memset(&buff, 0, BUFFSIZE);
-			while ((ret_recv = recv(sock, buff, BUFFSIZE, 0)) > 0)
+			memset(buff, 0, BUFFSIZE);
+			int fd = open("./screen.png", O_RDWR | O_CREAT | O_TRUNC, 0644);
+			if ((ret_recv = recv(sock, buff, BUFFSIZE, 0)) == -1)
 			{
-				if (!strcmp(buff, "finish"))
-					break ;
-				write(1, &buff, ret_recv);
-				memset(&buff, 0, BUFFSIZE);
+				perror("send");
+				return (errno);
 			}
-		return(0);
+			printf("rcv = %s\n", buff);
+			memset(buff, 0, BUFFSIZE);
+			if ((ret_recv = recv(sock, buff, BUFFSIZE, 0)) == -1)
+			{
+				perror("send");
+				return (errno);
+			}
+			printf("rcv = %s\n", buff);
+			size = (size_t)atoi(buff);
+			printf("size = %zu\n", size);
+			memset(buff, 0, BUFFSIZE);
+
+			char	*img = (char *)malloc(sizeof(char) * size);
+			while (size > 0)
+			{
+				memset(img, 0, sizeof(char) * size);
+				ret_recv = recv(sock, img, size, 0);
+				printf("ret_recv = %zu\n", ret_recv);
+				write(fd, img, ret_recv);
+				size -= ret_recv;
+				printf("size = %zu\n", size);
+			}
+			return(0);
 		}
-		memset(&buff, 0, BUFFSIZE);
+		memset(buff, 0, BUFFSIZE);
 	}
 }

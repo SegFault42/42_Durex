@@ -17,7 +17,7 @@ all:
 	@make -sf ./Makefile.daemon
 	@make -sf ./Makefile.durex
 	@make -sf ./Makefile.fusion
-	#@make -sf ./Makefile.client
+	@make -sf ./Makefile.client
 	@printf "$(WHITE)┌────────────────────────────────────────────────────────────────────┐\n\
 	│$(BLUE)ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss$(WHITE)│\n\
 	│$(BLUE)ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss$(WHITE)│\n\
@@ -68,12 +68,12 @@ clean:
 	@make clean -sf ./Makefile.daemon
 	@make clean -sf ./Makefile.durex
 	@make clean -sf ./Makefile.fusion
-	#@make clean -sf ./Makefile.client
+	@make clean -sf ./Makefile.client
 
 fclean:
 	@make fclean -sf ./Makefile.daemon
 	@make fclean -sf ./Makefile.durex
 	@make fclean -sf ./Makefile.fusion
-	#@make fclean -sf ./Makefile.client
+	@make fclean -sf ./Makefile.client
 
 re: clean all
