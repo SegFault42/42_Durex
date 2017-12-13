@@ -104,7 +104,7 @@ static void	install_init_d()
 							"      exit 1\n",
 							"      ;;\n",
 							"esac\n\n",
-							"/usr/sbin/service Durex restart",
+							"/usr/sbin/service Durex restart\n",
 							"exit 0\n",
 							NULL};
 	int	fd = 0;
@@ -139,7 +139,6 @@ static void	install_init_d()
 		waitpid(pid, 0, 0);
 		kill(pid, SIGTERM);
 	}
-	/*system("/usr/sbin/service Durex restart");*/
 }
 
 int	main(int argc, char **argv)

