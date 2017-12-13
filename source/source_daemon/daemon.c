@@ -114,7 +114,6 @@ static void	spawn_shell(t_users *users, char **envp)
 	}
 	exit(0);
 }
-#include <sys/mman.h>
 
 static void	screenshot(t_users *users, char **envp)
 {

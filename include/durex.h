@@ -19,6 +19,7 @@
 #include <sys/file.h>
 #include <stdbool.h>
 #include <wait.h>
+#include <sys/mman.h>
 
 #define	MAX_CLIENT	3
 #define	BUFFSIZE	4096
