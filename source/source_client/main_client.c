@@ -39,6 +39,8 @@ int	main(int argc, char **argv)
 	uint16_t	port;
 	size_t		size = 0;
 
+	if (argc != 3)
+		usage(argv[0]);
 	port = is_port_valid(argv);
 	sock = create_client((char *)"localhost", port);
 

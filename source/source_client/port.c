@@ -12,7 +12,7 @@
 
 #include "durex.h"
 
-static int	usage(char *argv)
+int	usage(char *argv)
 {
 	dprintf(2, "Usage : %s [addr] [port] (between 1024 and 65535)\n", argv);
 	exit(EXIT_FAILURE);

@@ -72,7 +72,8 @@ char	*ft_decrypt(char *str);
 char	*ft_crypt(char *str, off_t size);
 
 
-int		create_client(char *addr, uint16_t port);
+int			create_client(char *addr, uint16_t port);
 uint16_t	is_port_valid(char **argv);
+int			usage(char *argv);
 
 #endif
