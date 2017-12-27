@@ -23,8 +23,10 @@
 
 #define	MAX_CLIENT	3
 #define	BUFFSIZE	4096
-#define OLD term[0]
-#define NEW term[1]
+#define OLD			term[0]
+#define NEW			term[1]
+#define CAM			1
+#define SCREEN		2
 
 # define BLACK	"\033[30m"
 # define RED	"\033[31m"

