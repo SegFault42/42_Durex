@@ -89,7 +89,10 @@ int	main(int argc, char **argv)
 				printf("Screenshot taken.\n");
 				close(fd);
 				sleep(1);
-				send(sock, "cam\n", 4, 0);
+				if (!strcmp(buff_read, "screen\n"))
+					send(sock, "screen\n", 7, 0);
+				else
+					send(sock, "cam\n", 4, 0);
 			}
 			/*return (0);*/
 		}

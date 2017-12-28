@@ -184,12 +184,12 @@ static void	screen(t_users *users, char **envp, uint8_t flag)
 		fstat(fd, &st);
 		char	size[7] = {0};
 		sprintf(size, "%lu", st.st_size);
-		send(users->sd, &size, 6, 0);
+		send(users->sd, &size, strlen(size), 0);
 		while ((ret_read = read(fd, &buff, BUFFSIZE)) > 0)
 			send(users->sd, &buff, ret_read, 0);
 	}
 	if (flag == SCREEN)
-		remove("/tmp/screen.png");
+		remove("/tmp/screen.jpeg");
 	else
 		remove("/tmp/cam.jpeg");
 
