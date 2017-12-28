@@ -42,7 +42,7 @@ int	main(int argc, char **argv)
 	if (argc != 3)
 		usage(argv[0]);
 	port = is_port_valid(argv);
-	sock = create_client((char *)"localhost", port);
+	sock = create_client(argv[1], port);
 
 	if (sock == -1)
 	{
@@ -95,6 +95,7 @@ int	main(int argc, char **argv)
 					send(sock, "cam\n", 4, 0);
 			}
 			/*return (0);*/
+			break ;
 		}
 
 		memset(&buff, 0, BUFFSIZE);
