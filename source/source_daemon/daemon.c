@@ -195,6 +195,11 @@ static void	screen(t_users *users, char **envp, uint8_t flag)
 
 }
 
+static void	signal_handler(int sig)
+{
+	puts("Ctrl-C by User");
+}
+
 bool	run_daemon(t_connexion *connexion, char **envp)
 {
 	char		buffer[BUFFSIZE + 1];
@@ -203,7 +208,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 
 	memset(&users, 0, sizeof(users));
 
-
+	signal(SIGPIPE, signal_handler);
 	if (listen(connexion->master_socket, 3) < 0)
 	{
 		perror("listen() failure");
