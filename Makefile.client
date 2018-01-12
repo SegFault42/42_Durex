@@ -16,7 +16,7 @@ WHITE = \033[37m
 ##################################_COMPILATION_#################################
 NAME	= Client
 CC		= clang
-FLAG	= -Weverything
+FLAG	= -Weverything -g
 SRCS	=	./source/source_client/main_client.c\
 			./source/source_client/port.c\
 
