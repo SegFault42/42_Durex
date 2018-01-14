@@ -2,6 +2,7 @@
 #define DUREX_H
 
 #include <netdb.h>
+#include <net/if.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdio.h>
@@ -10,15 +11,16 @@
 #include <string.h>
 #include <unistd.h>
 #include <termios.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/time.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/file.h>
 #include <stdbool.h>
 #include <wait.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/ioctl.h>
 #include <sys/mman.h>
 
 #define	MAX_CLIENT	3
