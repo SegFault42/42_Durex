@@ -16,7 +16,7 @@ WHITE = \033[37m
 ##################################_COMPILATION_#################################
 NAME	= fusion
 CC		= clang
-FLAG	= -Weverything
+FLAG	= -Wall -Werror -Wextra
 SRCS	=	./source/source_fusion/main.c
 
 OBJS	= $(SRCS:.c=.o)

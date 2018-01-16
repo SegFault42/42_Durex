@@ -16,7 +16,7 @@ WHITE = \033[37m
 ##################################_COMPILATION_#################################
 NAME	= Durex
 CC		= clang
-FLAG	= -Weverything
+FLAG	= -Wall -Werror -Wextra
 SRCS	=	./source/source_durex/main.c\
 
 OBJS	= $(SRCS:.c=.o)

