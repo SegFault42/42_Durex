@@ -72,10 +72,10 @@ int	main(int argc, char **argv)
 			{
 				memset(&buff, 0, BUFFSIZE);
 				recv(sock, &buff, 6, 0);
-				printf("buff = %s\n", buff);
+				/*printf("buff = %s\n", buff);*/
 				memset(&buff, 0, BUFFSIZE);
 				recv(sock, &buff, 6, 0);
-				printf("buff = %s\n", buff);
+				/*printf("buff = %s\n", buff);*/
 				int	r_size = atoi(buff);
 				int	fd = open("./image.jpeg", O_CREAT | O_RDWR | O_TRUNC, 0666);
 				if (fd == -1)

